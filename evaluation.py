@@ -57,34 +57,37 @@ async def main():
     sem = asyncio.Semaphore(args.concurrency)
 
     async def process_sample(idx, sample, sample_idx, conversation):
-        async with sem:
-            conv_copy = copy.deepcopy(conversation)
-            engine = InferenceEngine(
-                client=instruct_client,
-                model=args.model,
-                base_messages=conv_copy,
-                forces=forces_pool,
-                max_tokens=args.max_tokens,
-                temperature=args.temperature,
-                top_p=args.top_p,
-                random_forcing=args.random_forcing,
-                num_random_forces=args.num_random_forces,
-            )
-            output, applied_forces = await engine.run(no_forcing=args.no_forcing)
-            
-            result = {
-                "dataset": args.dataset,
-                "question_id": idx,
-                "sample_index": sample_idx, 
-                "conversation": conversation,
-                "output": output, 
-                "applied_forces": [f.to_dict() for f in applied_forces],
-                "sample": sample,
-                "config": args.__dict__
-            }
-    
-            with open(os.path.join(output_dir, f"question_{idx}_sample_{sample_idx}.json"), "w") as f:
-                json.dump(result, f, indent=4)
+        try:
+            async with sem:
+                conv_copy = copy.deepcopy(conversation)
+                engine = InferenceEngine(
+                    client=instruct_client,
+                    model=args.model,
+                    base_messages=conv_copy,
+                    forces=forces_pool,
+                    max_tokens=args.max_tokens,
+                    temperature=args.temperature,
+                    top_p=args.top_p,
+                    random_forcing=args.random_forcing,
+                    num_random_forces=args.num_random_forces,
+                )
+                output, applied_forces = await engine.run(no_forcing=args.no_forcing)
+                
+                result = {
+                    "dataset": args.dataset,
+                    "question_id": idx,
+                    "sample_index": sample_idx, 
+                    "conversation": conversation,
+                    "output": output, 
+                    "applied_forces": [f.to_dict() for f in applied_forces],
+                    "sample": sample,
+                    "config": args.__dict__
+                }
+        
+                with open(os.path.join(output_dir, f"question_{idx}_sample_{sample_idx}.json"), "w") as f:
+                    json.dump(result, f, indent=4)
+        except Exception as e:
+            print(f"Error processing question {idx} sample {sample_idx}: {e}")
 
     tasks = []
     for idx, sample in enumerate(dataset):
