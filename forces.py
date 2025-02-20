@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 def remove_final_solution(text: str) -> str:
-    marker = "<|begin_of_solution|>"
+    marker = "<answer>"
     idx = text.find(marker)
     if idx != -1:
         return text[:idx].strip()
@@ -14,7 +14,7 @@ class Force(ABC):
         self.repetitions = repetitions
 
     def append_force(self, reasoning: str) -> str:
-        return reasoning + "\n" + self.force_string
+        return reasoning + "\n\n" + self.force_string
     
     def to_dict(self):
         return {"name": self.name, "force_string": self.force_string, "repetitions": self.repetitions}

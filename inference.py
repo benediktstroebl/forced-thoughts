@@ -14,6 +14,7 @@ class InferenceEngine:
         self.random_forcing = random_forcing
         self.num_random_forces = num_random_forces
         self.applied_forces = []
+        self.final_force = Force("final_force", "Ok, now it's time to conclude and produce the final solution.</think >\n<answer>", 1)
 
     async def generate(self, extra_body=None):
         extra_body = extra_body or {}
@@ -27,8 +28,13 @@ class InferenceEngine:
         )
         return chat_completion.choices[0].message.content
 
-    async def run(self):
+    async def run(self, no_forcing=False):
         current_trace = await self.generate(extra_body={"continue_final_message": True, "add_generation_prompt": False})
+        current_trace = self.messages[-1]['content'] + current_trace
+        
+        if no_forcing:
+            return current_trace, []
+        
         if self.random_forcing:
             import random
             for _ in range(self.num_random_forces):
@@ -38,6 +44,7 @@ class InferenceEngine:
                 forced_trace = force.append_force(current_trace)
                 self.messages[-1]['content'] = forced_trace
                 current_trace = await self.generate(extra_body={"continue_final_message": True, "add_generation_prompt": False})
+                current_trace = self.messages[-1]['content'] + current_trace
         else:
             for force in self.forces:
                 while force.repetitions > 0:
@@ -45,10 +52,14 @@ class InferenceEngine:
                     forced_trace = force.append_force(current_trace)
                     self.messages[-1]['content'] = forced_trace
                     current_trace = await self.generate(extra_body={"continue_final_message": True, "add_generation_prompt": False})
+                    current_trace = self.messages[-1]['content'] + current_trace
                     force.repetitions -= 1
                     self.applied_forces.append(force)
         current_trace = remove_final_solution(current_trace)
+        forced_trace = self.final_force.append_force(current_trace)
+        self.messages[-1]['content'] = forced_trace
         final_trace = await self.generate(extra_body={"continue_final_message": True, "add_generation_prompt": False})
+        final_trace = self.messages[-1]['content'] + final_trace
         return final_trace, self.applied_forces
 
 # Example usage:
