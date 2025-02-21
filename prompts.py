@@ -26,3 +26,9 @@ def generate_prompt(test_case, prompt, starter_code=None):
         formatted_prompt += data
 
     return formatted_prompt
+
+## AIME
+AIME_USER_PROMPT = """{problem}"""
+
+## GPQA
+GPQA_USER_PROMPT = """{question}"""

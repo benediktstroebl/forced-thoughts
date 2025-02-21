@@ -30,36 +30,50 @@ class InferenceEngine:
 
     async def run(self, no_forcing=False):
         current_trace = await self.generate(extra_body={"continue_final_message": True, "add_generation_prompt": False})
-        current_trace = self.messages[-1]['content'] + current_trace
+        current_trace = self.messages[-1]['content'] + current_trace.replace("</think>", "</think >")
         
         if no_forcing:
             return current_trace, []
         
         if self.random_forcing:
             import random
+            remaining_forces = [f for f in self.forces if f.max_repetitions > 0]
             for _ in range(self.num_random_forces):
+                if not remaining_forces:
+                    break
+                    
                 current_trace = remove_final_solution(current_trace)
-                force = random.choice(self.forces)
+                # print(f"Current trace: {current_trace}")
+                force = random.choice(remaining_forces)
                 self.applied_forces.append(force)
+                # print(f"Applied force: {force.name}")
                 forced_trace = force.append_force(current_trace)
+                # print(f"Forced trace: {forced_trace}")
                 self.messages[-1]['content'] = forced_trace
+                # print(f"Messages: {self.messages}")
                 current_trace = await self.generate(extra_body={"continue_final_message": True, "add_generation_prompt": False})
-                current_trace = self.messages[-1]['content'] + current_trace
+                current_trace = self.messages[-1]['content'] + current_trace.replace("</think>", "</think >")
+                # print(f"New current trace: {current_trace}")
+                
+                force.max_repetitions -= 1
+                if force.max_repetitions <= 0:
+                    remaining_forces.remove(force)
         else:
             for force in self.forces:
-                while force.repetitions > 0:
+                while force.max_repetitions > 0:
                     current_trace = remove_final_solution(current_trace)
                     forced_trace = force.append_force(current_trace)
                     self.messages[-1]['content'] = forced_trace
                     current_trace = await self.generate(extra_body={"continue_final_message": True, "add_generation_prompt": False})
-                    current_trace = self.messages[-1]['content'] + current_trace
-                    force.repetitions -= 1
+                    current_trace = self.messages[-1]['content'] + current_trace.replace("</think>", "</think >")
+                    force.max_repetitions -= 1
                     self.applied_forces.append(force)
         current_trace = remove_final_solution(current_trace)
+        self.applied_forces.append(self.final_force)
         forced_trace = self.final_force.append_force(current_trace)
         self.messages[-1]['content'] = forced_trace
         final_trace = await self.generate(extra_body={"continue_final_message": True, "add_generation_prompt": False})
-        final_trace = self.messages[-1]['content'] + final_trace
+        final_trace = self.messages[-1]['content'] + final_trace.replace("</think>", "</think >")
         return final_trace, self.applied_forces
 
 # Example usage:

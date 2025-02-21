@@ -1,0 +1,8 @@
+python plot_pass_at_k.py \
+    --input_dirs results/taco/deepseek-ai_DeepSeek-R1-Distill-Qwen-32B_test_nrofrandomforces_2_randomforcing_True_waitonly_False_noforcing_False_maxtokens_4096_temp_0.7_topp_0.7 \
+    results/taco/deepseek-ai_DeepSeek-R1-Distill-Qwen-32B_test_nrofrandomforces_2_randomforcing_True_waitonly_True_noforcing_False_maxtokens_4096_temp_0.7_topp_0.7 \
+    results/taco/deepseek-ai_DeepSeek-R1-Distill-Qwen-32B_test_nrofrandomforces_3_randomforcing_False_waitonly_False_noforcing_True_maxtokens_4096_temp_0.7_topp_0.7 \
+    results/taco/deepseek-ai_DeepSeek-R1-Distill-Qwen-32B_test_nrofrandomforces_2_randomforcing_True_waitonly_False_noforcing_False_approachforce_True_maxtokens_4096_temp_0.7_topp_0.7 \
+    results/taco/deepseek-ai_DeepSeek-R1-Distill-Qwen-32B_test_nrofrandomforces_4_randomforcing_True_waitonly_False_noforcing_False_approachforce_True_maxtokens_4096_temp_0.7_topp_0.7_repetitions \
+    results/taco/deepseek-ai_DeepSeek-R1-Distill-Qwen-32B_test_nrofrandomforces_4_randomforcing_True_waitonly_False_noforcing_False_approachforce_True_maxtokens_4096_temp_0.7_topp_0.7 \
+    --output pass_at_k.pdf
